@@ -1,0 +1,132 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: nr-rollouts-demo
+spec:
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: nr-rollouts-demo
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "true"
+      labels:
+        app: nr-rollouts-demo
+    spec:
+      containers:
+        - name: nr-rollouts-demo
+          image: edmocosta/nr-rollouts-demo:blue
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          resources:
+            requests:
+              memory: 32Mi
+              cpu: 5m
+          env:
+            - name: "NEW_RELIC_LICENSE_KEY"
+              valueFrom:
+                secretKeyRef:
+                  name: newrelic
+                  key: license-key
+  strategy:
+    canary:
+      stableService: nr-rollouts-demo-stable
+      canaryService: nr-rollouts-demo-canary
+      trafficRouting:
+        istio:
+          virtualService:
+            name: nr-rollouts-demo-virtualservice
+            routes:
+              - primary
+      analysis:
+        templates:
+          - templateName: newrelic-transaction-error-percentage-background
+        args:
+          - name: app-name
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: canary-pod-hash
+            valueFrom:
+              podTemplateHashValue: Latest
+          - name: interval-seconds
+            value: "30"
+      steps:
+        # First, we only redirect 3% of our application traffic to the canary. This amount is only an example
+        # and should be carefully defined according to your application characteristics. Too small values can
+        # lead to insufficient traffic to spot problems out. Bigger values can affect customers if the canary is
+        # completely broken.
+        - setWeight: 5
+        - pause: { duration: 60s }
+
+        - setWeight: 15
+        - pause: { duration: 60s }
+
+        - setWeight: 20
+        - pause: { duration: 60s }
+
+        - setWeight: 30
+        - pause: { duration: 120s }
+        # At this step, if the background analysis didn't report any failure, we will check our canary
+        # golden-signals (AI anomalies and incidents) opened since the deployment started (5 minutes ago).
+        - analysis:
+            templates:
+              - templateName: newrelic-golden-signals
+            args:
+              - name: app-name
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.name
+              - name: since
+                value: "5 minutes ago"
+
+        - setWeight: 50
+        - pause: { duration: 120s }
+        - analysis:
+            templates:
+              - templateName: newrelic-golden-signals
+            args:
+              - name: app-name
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.name
+              - name: since
+                value: "7 minutes ago"
+
+        - setWeight: 70
+        - pause: { duration: 120s }
+        - analysis:
+            templates:
+              - templateName: newrelic-golden-signals
+            args:
+              - name: app-name
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.name
+              - name: since
+                value: "9 minutes ago"
+
+        - setWeight: 90
+        - pause: { duration: 120s }
+        # Finally, with 90% of the traffic being handled by the canary, we will check the golden-signals and
+        # also the HTTP error percentage reported during the WHOLE deployment time (11 minutes ago).
+        - analysis:
+            templates:
+              - templateName: newrelic-transaction-error-percentage
+              - templateName: newrelic-golden-signals
+            args:
+              - name: app-name
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.name
+              - name: canary-pod-hash
+                valueFrom:
+                  podTemplateHashValue: Latest
+              - name: since
+                value: "11 minutes ago"
+
+        # No more steps here means that the canary succeeded and will be automatically promoted to stable
+        # If you want to pause the canary here promote it manually, just add pause{} step with no duration.

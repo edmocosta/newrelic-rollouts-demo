@@ -1,0 +1,73 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: newrelic-transaction-error-percentage-background
+spec:
+  args:
+    - name: app-name
+    - name: canary-pod-hash
+    - name: interval-seconds
+  metrics:
+    - name: error-percentage
+      # result.errorPercentage will be nil if no data was sent to NewRelic yet, on this case
+      # combining the successCondition and failureCondition will lead to an inconclusive-runs
+      # as it not necessarily succeed neither failed
+      # https://argoproj.github.io/argo-rollouts/features/analysis/#inconclusive-runs
+      successCondition: result.errorPercentage != nil && result.errorPercentage < 1
+      failureCondition: result.errorPercentage != nil && result.errorPercentage > 1
+      initialDelay: '{{ args.interval-seconds }}s'
+      interval: '{{ args.interval-seconds }}s'
+      provider:
+        newRelic:
+          profile: newrelic-rollouts
+          query: |
+            FROM Transaction SELECT percentage(count(*), WHERE floor(numeric(httpResponseCode)/100) = 5) as errorPercentage where host like '{{ args.app-name }}-{{ args.canary-pod-hash }}-%' SINCE {{ args.interval-seconds }} SECONDS AGO UNTIL NOW
+
+---
+
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: newrelic-transaction-error-percentage
+spec:
+  args:
+    - name: app-name
+    - name: canary-pod-hash
+    - name: since
+  metrics:
+    - name: error-percentage
+      successCondition: result.errorPercentage != nil && result.errorPercentage < 1
+      failureCondition: result.errorPercentage != nil && result.errorPercentage > 1
+      provider:
+        newRelic:
+          profile: newrelic-rollouts
+          query: |
+            FROM Transaction SELECT percentage(count(*), WHERE floor(numeric(httpResponseCode)/100) = 5) as errorPercentage where host like '{{ args.app-name }}-{{ args.canary-pod-hash }}-%' SINCE {{ args.since }} UNTIL NOW
+
+---
+
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: newrelic-golden-signals
+spec:
+  args:
+    - name: since
+    - name: app-name
+  metrics:
+    - name: ai-anomalies
+      successCondition: result.count != nil && result.count == 0
+      failureCondition: result.count != nil && result.count > 0
+      provider:
+        newRelic:
+          profile: newrelic-rollouts
+          query: |
+            SELECT count(*) From NrAiAnomaly WHERE entity.name = '{{ args.app-name }}' and event = 'open' SINCE {{ args.since }} UNTIL NOW
+    - name: ai-incidents
+      successCondition: result.count != nil && result.count == 0
+      failureCondition: result.count != nil && result.count > 0
+      provider:
+        newRelic:
+          profile: newrelic-rollouts
+          query: |
+            SELECT count(*) From NrAiIncident WHERE entity.name = '{{ args.app-name }}' and event = 'open' SINCE {{ args.since }} UNTIL NOW
