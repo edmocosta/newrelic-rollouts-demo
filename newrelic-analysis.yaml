@@ -6,7 +6,6 @@ spec:
   args:
     - name: app-name
     - name: canary-pod-hash
-    - name: interval-seconds
   metrics:
     - name: error-percentage
       # result.errorPercentage will be nil if no data was sent to NewRelic yet, on this case
@@ -15,13 +14,13 @@ spec:
       # https://argoproj.github.io/argo-rollouts/features/analysis/#inconclusive-runs
       successCondition: result.errorPercentage != nil && result.errorPercentage < 1
       failureCondition: result.errorPercentage != nil && result.errorPercentage > 1
-      initialDelay: '{{ args.interval-seconds }}s'
-      interval: '{{ args.interval-seconds }}s'
+      interval: 30s
+      initialDelay: 30s
       provider:
         newRelic:
           profile: newrelic-rollouts
           query: |
-            FROM Transaction SELECT percentage(count(*), WHERE floor(numeric(httpResponseCode)/100) = 5) as errorPercentage where host like '{{ args.app-name }}-{{ args.canary-pod-hash }}-%' SINCE {{ args.interval-seconds }} SECONDS AGO UNTIL NOW
+            FROM Transaction SELECT percentage(count(*), WHERE floor(numeric(httpResponseCode)/100) = 5) as errorPercentage where host like '{{ args.app-name }}-{{ args.canary-pod-hash }}-%' SINCE 30 SECONDS AGO UNTIL NOW
 
 ---
 

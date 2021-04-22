@@ -128,9 +128,9 @@ The following command will create three Argo Rollouts [AnalysisTemplate](https:/
 $ kubectl apply -f https://raw.githubusercontent.com/edmocosta/newrelic-rollouts-demo/master/newrelic-analysis.yaml
 ```
 
-The `newrelic-transaction-error-percentage-background` template checks the percentage of `HTTP 5xx`  responses given by the canary's pods during the `interval-seconds` until the current time. This template will be used as a fail-fast mechanism and will run every `interval-seconds` during the whole deployment time. 
+The `newrelic-transaction-error-percentage-background` template checks the percentage of `HTTP 5xx`  responses given by the canary's pods during the last 30 seconds. This template will be used as a fail-fast mechanism and will run every 30 seconds during the whole deployment time. 
 
-The `newrelic-transaction-error-percentage` is similar to the `newrelic-transaction-error-percentage-background`, the main difference is that this template does not run in the background, has no initial delay, and execute the [NRQL](https://docs.newrelic.com/docs/query-your-data/nrql-new-relic-query-language/get-started/introduction-nrql-new-relics-query-language/) query using the `since` argument instead of the `interval-seconds`. This template will be used to check the overall response errors in a bigger time window.
+The `newrelic-transaction-error-percentage` is similar to the `newrelic-transaction-error-percentage-background`, the main difference is that this template does not run in the background, has no initial delay, and execute the [NRQL](https://docs.newrelic.com/docs/query-your-data/nrql-new-relic-query-language/get-started/introduction-nrql-new-relics-query-language/) query using the `since` argument instead of 30 seconds ago. This template will be used to check the overall response errors in a bigger time window.
 
 Finally, the `newrelic-golden-signals` will check the NewRelic [Proactive Detection](https://docs.newrelic.com/docs/alerts-applied-intelligence/applied-intelligence/proactive-detection/proactive-detection-applied-intelligence/) golden signals (throughput, response time, and errors) of the application. If NewRelic detects any anomaly or if an [alert](https://docs.newrelic.com/docs/alerts-applied-intelligence/new-relic-alerts/get-started/introduction-alerts/) triggers during the deployment, the canary will be aborted.
 
@@ -184,8 +184,6 @@ rollout.yaml
           - name: canary-pod-hash
             valueFrom:
               podTemplateHashValue: Latest
-          - name: interval-seconds
-            value: "30" 
       steps:
       	# First, we only redirect 3% of our application traffic to the canary. This amount is only an example
       	# and should be carefully defined according to your application characteristics. Too small values can
@@ -289,7 +287,7 @@ At this point, everything looks fine with our demo application and all metrics a
 First of all, let's check if a healthy (`green`) version of the demo application is successfully deployed and promoted to stable using our canary strategy:
 
 ```shell
-$ kubectl argo rollouts set image nr-rollouts-demo nr-rollouts-demo=edmocosta/rollouts-demo:green 
+$ kubectl argo rollouts set image nr-rollouts-demo nr-rollouts-demo=edmocosta/nr-rollouts-demo:green 
 ```
 
 | 1. `green` is being canary released                          | 2. Part of the traffic is being sent to the `green` pods     |
@@ -305,7 +303,7 @@ $ kubectl argo rollouts set image nr-rollouts-demo nr-rollouts-demo=edmocosta/ro
 The `bad-red` image adds `15%` of  `HTTP 500` errors to the API responses. This canary version should fail as the maximum percentage allowed by our [AnalysisTemplate](https://argoproj.github.io/argo-rollouts/features/analysis/) is `1%`.
 
 ```shell
-$ kubectl argo rollouts set image nr-rollouts-demo nr-rollouts-demo=edmocosta/rollouts-demo:bad-red 
+$ kubectl argo rollouts set image nr-rollouts-demo nr-rollouts-demo=edmocosta/nr-rollouts-demo:bad-red 
 ```
 
 | 1. `bad-red` is being canary released                        | 2. Part of the traffic is being sent to the `bad-red` pods   |
@@ -331,7 +329,7 @@ Checking this analysis status, we can conclude that `bad-red` failed due to the 
 Let's now deploy the `yellow` version and significantly increase the API response latency to affect our application [Apdex.](https://docs.newrelic.com/docs/apm/new-relic-apm/apdex/apdex-measure-user-satisfaction/) An [alert condition](https://docs.newrelic.com/docs/alerts-applied-intelligence/new-relic-alerts/get-started/introduction-alerts/) was previously configured in NewRelic One to detect Apdex values lower than `0.9`.
 
 ```shell
-$ kubectl argo rollouts set image nr-rollouts-demo nr-rollouts-demo=edmocosta/rollouts-demo:yellow
+$ kubectl argo rollouts set image nr-rollouts-demo nr-rollouts-demo=edmocosta/nr-rollouts-demo:yellow
 ```
 
 | 1. `yellow` is being canary released                         | 2. A latency of 5 seconds for 100% of the `yellow` responses was set on the demo app |
@@ -351,7 +349,7 @@ The `yellow` `AnalysisRun` status (`$ kubectl describe AnalysisRun <FAILED-ANALY
 Finally, let's test the [proactive detection](https://docs.newrelic.com/docs/alerts-applied-intelligence/applied-intelligence/proactive-detection/proactive-detection-applied-intelligence/) analysis, for this test, the `Rollout` resource was changed to intentionally disable all `HTTP 5xx` error analysis, that way, we can easily generate an anomaly by increasing the HTTP error rate to an abnormal level. The `purple` version is ready to go:
 
 ```shell
-$ kubectl argo rollouts set image nr-rollouts-demo nr-rollouts-demo=edmocosta/rollouts-demo:purple
+$ kubectl argo rollouts set image nr-rollouts-demo nr-rollouts-demo=edmocosta/nr-rollouts-demo:purple
 ```
 
 | 1. `purple` is being canary released                         | 2. The  `purple` 500 Error Rate was set to 100% on the demo app |
