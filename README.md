@@ -1,12 +1,12 @@
 
 
-# AIOps Canary Releases with NewRelic and Argo Rollouts
+# AIOps Canary Releases with New Relic and Argo Rollouts
 
-[NewRelic Applied Intelligence](https://docs.newrelic.com/docs/alerts-applied-intelligence/new-relic-alerts/get-started/introduction-applied-intelligence/) spots unusual changes across all applications, services, and log data with automatic alerts based on golden signals like throughput, errors, and latency — with no configuration needed, [Proactive Detection](https://docs.newrelic.com/docs/alerts-applied-intelligence/applied-intelligence/proactive-detection/proactive-detection-applied-intelligence/), for example, is automatically enabled and available at no additional cost. All that's required is data from your APM-monitored applications flowing into New Relic.
+[New Relic Applied Intelligence](https://docs.newrelic.com/docs/alerts-applied-intelligence/new-relic-alerts/get-started/introduction-applied-intelligence/) spots unusual changes across all applications, services, and log data with automatic alerts based on golden signals like throughput, errors, and latency — with no configuration needed, [Proactive Detection](https://docs.newrelic.com/docs/alerts-applied-intelligence/applied-intelligence/proactive-detection/proactive-detection-applied-intelligence/), for example, is automatically enabled and available at no additional cost. All that's required is data from your APM-monitored applications flowing into New Relic.
 
-Using the NewRelic AIOps power to drive [Canary](https://martinfowler.com/bliki/CanaryRelease.html) releases can make your application deployment safer, faster, and easier to set up, ensuring that only healthy versions of your application reach production. We can literally go from zero to fully monitored canaries in minutes.
+Using the New Relic AIOps power to drive [Canary](https://martinfowler.com/bliki/CanaryRelease.html) releases can make your application deployment safer, faster, and easier to set up, ensuring that only healthy versions of your application reach production. We can literally go from zero to fully monitored canaries in minutes.
 
-This post assumes you already have installed and are familiar with Kubernetes, Docker, Service Mesh, and [Canary](https://martinfowler.com/bliki/CanaryRelease.html) concepts. The main goal is to give you an overview of Argo Rollouts [Analysis](https://argoproj.github.io/argo-rollouts/features/analysis/) powered by NewRelic AIOps [Proactive Detection](https://docs.newrelic.com/docs/alerts-applied-intelligence/applied-intelligence/proactive-detection/proactive-detection-applied-intelligence/) and maybe be an inspiration to help you find the paved road to safer deploys. All examples presented are specific for this demo application and should not be used as a common recipe for canary releases.
+This post assumes you already have installed and are familiar with Kubernetes, Docker, Service Mesh, and [Canary](https://martinfowler.com/bliki/CanaryRelease.html) concepts. The main goal is to give you an overview of Argo Rollouts [Analysis](https://argoproj.github.io/argo-rollouts/features/analysis/) powered by New Relic AIOps [Proactive Detection](https://docs.newrelic.com/docs/alerts-applied-intelligence/applied-intelligence/proactive-detection/proactive-detection-applied-intelligence/) and maybe be an inspiration to help you find the paved road to safer deploys. All examples presented are specific for this demo application and should not be used as a common recipe for canary releases.
 
 
 
@@ -93,7 +93,7 @@ $ kubectl apply -f https://raw.githubusercontent.com/edmocosta/newrelic-rollouts
 
 #### Secrets
 
-Argo Rollouts NewRelic Analysis requires a K8s `Secret` containing your [Account ID](https://docs.newrelic.com/docs/accounts/accounts-billing/account-setup/account-id), [Personal Key](https://docs.newrelic.com/docs/apis/get-started/intro-apis/types-new-relic-api-keys#personal-api-key), and [Region](https://docs.newrelic.com/docs/using-new-relic/welcome-new-relic/get-started/our-eu-us-region-data-centers) (`us` or `eu`) to be able to run the analysis against your account's data. We also need another K8s `Secret` to enter your NewRelic [License Key](https://docs.newrelic.com/docs/apis/get-started/intro-apis/new-relic-api-keys/#ingest-license-key) and pass it over to our demo application by an environment variable.
+Argo Rollouts New Relic Analysis requires a K8s `Secret` containing your [Account ID](https://docs.newrelic.com/docs/accounts/accounts-billing/account-setup/account-id), [Personal Key](https://docs.newrelic.com/docs/apis/get-started/intro-apis/types-new-relic-api-keys#personal-api-key), and [Region](https://docs.newrelic.com/docs/using-new-relic/welcome-new-relic/get-started/our-eu-us-region-data-centers) (`us` or `eu`) to be able to run the analysis against your account's data. We also need another K8s `Secret` to enter your New Relic [License Key](https://docs.newrelic.com/docs/apis/get-started/intro-apis/new-relic-api-keys/#ingest-license-key) and pass it over to our demo application by an environment variable.
 
 ```shell
 $ kubectl apply -f - <<EOF
@@ -120,7 +120,7 @@ EOF
 
 #### Analysis
 
-Argo Rollouts provides several ways to perform analysis and drive progressive delivery. In this example, we will focus on NewRelic's [Proactive Detection](https://docs.newrelic.com/docs/alerts-applied-intelligence/applied-intelligence/proactive-detection/proactive-detection-applied-intelligence/) and the [events reported by APM](https://docs.newrelic.com/docs/insights/event-data-sources/default-events/events-reported-apm/). Both data sources work out of the box and require almost no actions by you to work but keeping APM-monitored data flowing into New Relic.  
+Argo Rollouts provides several ways to perform analysis and drive progressive delivery. In this example, we will focus on New Relic's [Proactive Detection](https://docs.newrelic.com/docs/alerts-applied-intelligence/applied-intelligence/proactive-detection/proactive-detection-applied-intelligence/) and the [events reported by APM](https://docs.newrelic.com/docs/insights/event-data-sources/default-events/events-reported-apm/). Both data sources work out of the box and require almost no actions by you to work but keeping APM-monitored data flowing into New Relic.  
 
 The following command will create three Argo Rollouts [AnalysisTemplate](https://argoproj.github.io/argo-rollouts/features/analysis/):
 
@@ -132,9 +132,9 @@ The `newrelic-transaction-error-percentage-background` template checks the perce
 
 The `newrelic-transaction-error-percentage` is similar to the `newrelic-transaction-error-percentage-background`, the main difference is that this template does not run in the background, has no initial delay, and execute the [NRQL](https://docs.newrelic.com/docs/query-your-data/nrql-new-relic-query-language/get-started/introduction-nrql-new-relics-query-language/) query using the `since` argument instead of 30 seconds ago. This template will be used to check the overall response errors in a bigger time window.
 
-Finally, the `newrelic-golden-signals` will check the NewRelic [Proactive Detection](https://docs.newrelic.com/docs/alerts-applied-intelligence/applied-intelligence/proactive-detection/proactive-detection-applied-intelligence/) golden signals (throughput, response time, and errors) of the application. If NewRelic detects any anomaly or if an [alert](https://docs.newrelic.com/docs/alerts-applied-intelligence/new-relic-alerts/get-started/introduction-alerts/) triggers during the deployment, the canary will be aborted.
+Finally, the `newrelic-golden-signals` will check the New Relic [Proactive Detection](https://docs.newrelic.com/docs/alerts-applied-intelligence/applied-intelligence/proactive-detection/proactive-detection-applied-intelligence/) golden signals (throughput, response time, and errors) of the application. If New Relic detects any anomaly or if an [alert](https://docs.newrelic.com/docs/alerts-applied-intelligence/new-relic-alerts/get-started/introduction-alerts/) triggers during the deployment, the canary will be aborted.
 
-If no data is reported to NewRelic by the canary pods during the analysis time, an [inconclusive](https://argoproj.github.io/argo-rollouts/features/analysis/#inconclusive-runs) result will be reported.
+If no data is reported to New Relic by the canary pods during the analysis time, an [inconclusive](https://argoproj.github.io/argo-rollouts/features/analysis/#inconclusive-runs) result will be reported.
 
 #### Rollout
 
@@ -153,7 +153,7 @@ There are several guides out there about how to define a good canary strategy an
 In this example, our canary release analysis will take at least *11 minutes* to be fully promoted. The plan is to gradually increase the canary's traffic every one or two minutes and run the analysis to detect problems. To summarize our strategy:
 
 - If the canary is completely broken, we want to fail it fast, for that, we will use a [background analysis](https://argoproj.github.io/argo-rollouts/features/analysis/#background-analysis) to check our application canary pod's `HTTP 5XX` responses, every 30 seconds, during the whole deployment time.
-- NewRelic [Proactive Detection](https://docs.newrelic.com/docs/alerts-applied-intelligence/applied-intelligence/proactive-detection/proactive-detection-applied-intelligence/) monitors metric data reported by an APM agent, building a model of our typical application dynamics, and focuses on key golden signals: throughput, response time, and errors. If one of these golden signals behaves anomalously during the deployment, the canary will fail. To make sure we have enough data points reported to NewRelic, we will start running this analysis after 5 minutes. 
+- New Relic [Proactive Detection](https://docs.newrelic.com/docs/alerts-applied-intelligence/applied-intelligence/proactive-detection/proactive-detection-applied-intelligence/) monitors metric data reported by an APM agent, building a model of our typical application dynamics, and focuses on key golden signals: throughput, response time, and errors. If one of these golden signals behaves anomalously during the deployment, the canary will fail. To make sure we have enough data points reported to New Relic, we will start running this analysis after 5 minutes. 
 - The canary will fail if any [alert](https://docs.newrelic.com/docs/alerts-applied-intelligence/new-relic-alerts/get-started/introduction-alerts/) triggers for our demo application. 
 - Finally, we will check the overall golden signals and HTTP responses given by the canary's pods again, but during the whole deployment time.
 
@@ -172,7 +172,7 @@ rollout.yaml
               - primary
       # The following analysis will run in the background while the canary is progressing through its 
       # rollout steps. It will check every 30 seconds if the application has reported more than 1% of 
-      # HTTP 5XX responses to NewRelic. If so, the canary will fail and the deployment aborted.
+      # HTTP 5XX responses to New Relic. If so, the canary will fail and the deployment aborted.
       analysis:
         templates:
           - templateName: newrelic-transaction-error-percentage-background
@@ -185,9 +185,9 @@ rollout.yaml
             valueFrom:
               podTemplateHashValue: Latest
       steps:
-      	# First, we only redirect 3% of our application traffic to the canary. This amount is only an example
-      	# and should be carefully defined according to your application characteristics. Too small values can
-      	# lead to insufficient traffic to spot problems out. Bigger values can affect customers if the canary is
+        # First, we only redirect 3% of our application traffic to the canary. This amount is only an example
+        # and should be carefully defined according to your application characteristics. Too small values can
+        # lead to insufficient traffic to spot problems out. Bigger values can affect customers if the canary is
         # completely broken.
         - setWeight: 5
         - pause: { duration: 60s }
@@ -235,7 +235,7 @@ rollout.yaml
 
 ### Running everything
 
-For this example, we will use a modified version of the [rollouts-demo](https://github.com/argoproj/rollouts-demo) application which sends metrics to NewRelic using the [Go-Agent](https://github.com/newrelic/go-agent). Before checking the demo application out, let's verify if all resources were properly created:
+For this example, we will use a modified version of the [rollouts-demo](https://github.com/argoproj/rollouts-demo) application which sends metrics to New Relic using the [Go-Agent](https://github.com/newrelic/go-agent). Before checking the demo application out, let's verify if all resources were properly created:
 
 ```shell
 $ kubectl get ro
@@ -276,7 +276,7 @@ Great! We can see on the demo application that only one version (`blue`) is depl
 $ kubectl argo rollouts get rollout nr-rollouts-demo --watch
 ```
 
-At this point, everything looks fine with our demo application and all metrics are being reported to NewRelic:
+At this point, everything looks fine with our demo application and all metrics are being reported to New Relic:
 
 <img src="images/nr_apm_initial_view.png" alt="nr_apm_initial_view" style="zoom: 60%;" />
 
@@ -309,7 +309,7 @@ $ kubectl argo rollouts set image nr-rollouts-demo nr-rollouts-demo=edmocosta/nr
 | 1. `bad-red` is being canary released                        | 2. Part of the traffic is being sent to the `bad-red` pods   |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | <img src="images/bad_red_canary_status.png" alt="Image" style="zoom:50%;" /> | <img src="images/bad_red_canary_traffic.png" alt="Image" style="zoom:60%;" /> |
-| **3. `bad-red` reported HTTP 500 errors to NewRelic**        | **4. The `bad-red` rollout is aborted**                      |
+| **3. `bad-red` reported HTTP 500 errors to New Relic**        | **4. The `bad-red` rollout is aborted**                      |
 | <img src="images/bad_red_apm_http_errors.png" alt="Image" style="zoom:50%;" /> | <img src="images/bad_red_canary_rollout_aborted.png" alt="Image" style="zoom:50%;" /> |
 
 To better understand what just happened with the `bad-red` version, let's take a look at the failed `AnalysisRun` status by running the following command:
@@ -326,7 +326,7 @@ Checking this analysis status, we can conclude that `bad-red` failed due to the 
 
 #### Test 3:  Alerts
 
-Let's now deploy the `yellow` version and significantly increase the API response latency to affect our application [Apdex.](https://docs.newrelic.com/docs/apm/new-relic-apm/apdex/apdex-measure-user-satisfaction/) An [alert condition](https://docs.newrelic.com/docs/alerts-applied-intelligence/new-relic-alerts/get-started/introduction-alerts/) was previously configured in NewRelic One to detect Apdex values lower than `0.9`.
+Let's now deploy the `yellow` version and significantly increase the API response latency to affect our application [Apdex.](https://docs.newrelic.com/docs/apm/new-relic-apm/apdex/apdex-measure-user-satisfaction/) An [alert condition](https://docs.newrelic.com/docs/alerts-applied-intelligence/new-relic-alerts/get-started/introduction-alerts/) was previously configured in New Relic One to detect Apdex values lower than `0.9`.
 
 ```shell
 $ kubectl argo rollouts set image nr-rollouts-demo nr-rollouts-demo=edmocosta/nr-rollouts-demo:yellow
@@ -335,7 +335,7 @@ $ kubectl argo rollouts set image nr-rollouts-demo nr-rollouts-demo=edmocosta/nr
 | 1. `yellow` is being canary released                         | 2. A latency of 5 seconds for 100% of the `yellow` responses was set on the demo app |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | <img src="images/yellow_canary_status.png" alt="Image" style="zoom:60%;" /> | <img src="images/yellow_canary_traffic.png" alt="Image" style="zoom:40%;" /> |
-| **3. NewRelic Apdex incident was triggered**                 | **4. The `yellow` rollout is aborted**                       |
+| **3. New Relic Apdex incident was triggered**                 | **4. The `yellow` rollout is aborted**                       |
 | <img src="images/yellow_canary_apm_incident.png" alt="Image" style="zoom:60%;" /> | <img src="images/yellow_canary_rollout_aborted.png" alt="Image" style="zoom:40%;" /> |
 
 The `yellow` `AnalysisRun` status (`$ kubectl describe AnalysisRun <FAILED-ANALYSIS-NAME>`) also gives us some insights about the deployment failure, in this specific case, one incident triggered during the canary deployment:
@@ -355,7 +355,7 @@ $ kubectl argo rollouts set image nr-rollouts-demo nr-rollouts-demo=edmocosta/nr
 | 1. `purple` is being canary released                         | 2. The  `purple` 500 Error Rate was set to 100% on the demo app |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | <img src="images/purple_canary_status.png" alt="Image" style="zoom:60%;" /> | <img src="images/purple_canary_traffic.png" alt="Image" style="zoom:40%;" /> |
-| **3. NewRelic Proactive Detection detected an anomaly in the application (error rate much higher than normal)** | **4. The `purple` rollout is aborted**                       |
+| **3. New Relic Proactive Detection detected an anomaly in the application (error rate much higher than normal)** | **4. The `purple` rollout is aborted**                       |
 | <img src="images/purple_canary_apm_anomaly.png" alt="Image" style="zoom:60%;" /> | <img src="images/purple_canary_rollout_aborted.png" alt="Image" style="zoom:40%;" /> |
 
 Once again, the `AnalysisRun` status shows us the canary failure reason:
@@ -364,11 +364,11 @@ Once again, the `AnalysisRun` status shows us the canary failure reason:
 
 
 
-That's great! Isn't? NewRelic [Proactive Detection](https://docs.newrelic.com/docs/alerts-applied-intelligence/applied-intelligence/proactive-detection/proactive-detection-applied-intelligence/) is automatically enabled and available at no additional cost and virtually zero configuration. All that's required is data from your APM-monitored applications flowing into New Relic.
+That's great! Isn't? New Relic [Proactive Detection](https://docs.newrelic.com/docs/alerts-applied-intelligence/applied-intelligence/proactive-detection/proactive-detection-applied-intelligence/) is automatically enabled and available at no additional cost and virtually zero configuration. All that's required is data from your APM-monitored applications flowing into New Relic.
 
 ##### **Overview of anomalies**
 
-NewRelic One also provides information about the anomalies in your environment via the [Anomalies tab](https://docs.newrelic.com/docs/alerts-applied-intelligence/new-relic-alerts/get-started/alerts-ai-overview-page/#anomalies) on the [Alerts & AI Overview page](https://docs.newrelic.com/docs/alerts-applied-intelligence/new-relic-alerts/get-started/alerts-ai-overview-page/). That tab provides a list of all the recent anomalies from every configuration in the selected account, and you can select an anomaly for a detailed analysis.
+New Relic One also provides information about the anomalies in your environment via the [Anomalies tab](https://docs.newrelic.com/docs/alerts-applied-intelligence/new-relic-alerts/get-started/alerts-ai-overview-page/#anomalies) on the [Alerts & AI Overview page](https://docs.newrelic.com/docs/alerts-applied-intelligence/new-relic-alerts/get-started/alerts-ai-overview-page/). That tab provides a list of all the recent anomalies from every configuration in the selected account, and you can select an anomaly for a detailed analysis.
 
 For the above anomaly, we can easily identify that our canary version generated the anomaly:
 
@@ -380,7 +380,7 @@ For the above anomaly, we can easily identify that our canary version generated 
 
 Argo Rollouts supports different types of analysis, a Kubernetes Job, for example, can be used to run analysis and [experiments](https://argoproj.github.io/argo-rollouts/features/experiment/). Those capabilities make it possible to also include in your canary pipeline other types of healthiness checks such as E2E tests, performance benchmarks, etc. It also [integrates](https://argoproj.github.io/argo-rollouts/FAQ/#how-does-argo-rollouts-integrate-with-argo-cd) with [Argo CD](https://argoproj.github.io/argo-cd/) making the operators lives easier.
 
-[Proactive Detection](https://docs.newrelic.com/docs/alerts-applied-intelligence/applied-intelligence/proactive-detection/proactive-detection-applied-intelligence/) is one feature of NewRelic AIOps solution, if you want find, troubleshoot, and resolve problems more quickly, please check the [NewRelic Applied Intelligence](https://docs.newrelic.com/docs/alerts-applied-intelligence/new-relic-alerts/get-started/introduction-applied-intelligence/) page out and discover how AIOps can be a valuable ally to keep your applications up and running.
+[Proactive Detection](https://docs.newrelic.com/docs/alerts-applied-intelligence/applied-intelligence/proactive-detection/proactive-detection-applied-intelligence/) is one feature of New Relic AIOps solution, if you want find, troubleshoot, and resolve problems more quickly, please check the [New Relic Applied Intelligence](https://docs.newrelic.com/docs/alerts-applied-intelligence/new-relic-alerts/get-started/introduction-applied-intelligence/) page out and discover how AIOps can be a valuable ally to keep your applications up and running.
 
 The canary analysis presented in this post is only a starting point, depending on your application characteristics, you can include [Logs](https://docs.newrelic.com/docs/logs/log-management/get-started/get-started-log-management/), [Metrics](https://docs.newrelic.com/docs/telemetry-data-platform/ingest-manage-data/ingest-apis/introduction-metric-api/), [Tracing](https://docs.newrelic.com/docs/distributed-tracing/concepts/introduction-distributed-tracing/), and your own set of [Alerts](https://docs.newrelic.com/docs/alerts-applied-intelligence/new-relic-alerts/get-started/introduction-alerts/)  in your canary analysis pipeline. 
 
