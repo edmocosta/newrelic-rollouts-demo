@@ -187,9 +187,9 @@ rollout.yaml
           - name: interval-seconds
             value: "30" 
       steps:
-      	# First, we only redirect 3% of our application traffic to the canary. This amount is only an example
-      	# and should be carefully defined according to your application characteristics. Too small values can
-      	# lead to insufficient traffic to spot problems out. Bigger values can affect customers if the canary is
+        # First, we only redirect 3% of our application traffic to the canary. This amount is only an example
+        # and should be carefully defined according to your application characteristics. Too small values can
+        # lead to insufficient traffic to spot problems out. Bigger values can affect customers if the canary is
         # completely broken.
         - setWeight: 5
         - pause: { duration: 60s }
