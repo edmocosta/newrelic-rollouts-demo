@@ -130,11 +130,11 @@ $ kubectl apply -f https://raw.githubusercontent.com/edmocosta/newrelic-rollouts
 
 The `newrelic-transaction-error-percentage-background` template checks the percentage of `HTTP 5xx`  responses given by the canary's pods during the last 30 seconds. This template will be used as a fail-fast mechanism and will run every 30 seconds during the whole deployment time. 
 
-The `newrelic-transaction-error-percentage` is similar to the `newrelic-transaction-error-percentage-background`, the main difference is that this template does not run in the background, has no initial delay, and execute the [NRQL](https://docs.newrelic.com/docs/query-your-data/nrql-new-relic-query-language/get-started/introduction-nrql-new-relics-query-language/) query using the `since` argument instead of 30 seconds ago. This template will be used to check the overall response errors in a bigger time window.
+The `newrelic-transaction-error-percentage` is similar to the `newrelic-transaction-error-percentage-background`, the main difference is that this template does not run in the background, has no initial delay, and execute the [NRQL](https://docs.newrelic.com/docs/query-your-data/nrql-new-relic-query-language/get-started/introduction-nrql-new-relics-query-language/) query using the `since` argument instead of fixed 30 seconds ago. This template will be used to check the overall response errors in a bigger time window.
 
 Finally, the `newrelic-golden-signals` will check the New Relic [Proactive Detection](https://docs.newrelic.com/docs/alerts-applied-intelligence/applied-intelligence/proactive-detection/proactive-detection-applied-intelligence/) golden signals (throughput, response time, and errors) of the application. If New Relic detects any anomaly or if an [alert](https://docs.newrelic.com/docs/alerts-applied-intelligence/new-relic-alerts/get-started/introduction-alerts/) triggers during the deployment, the canary will be aborted.
 
-If no data is reported to New Relic by the canary pods during the analysis time, an [inconclusive](https://argoproj.github.io/argo-rollouts/features/analysis/#inconclusive-runs) result will be reported.
+If no data is reported to New Relic by the canary pods during the analysis time, an [inconclusive](https://argoproj.github.io/argo-rollouts/features/analysis/#inconclusive-runs) result will be reported. You can also customize the failure and inconclusive acceptances using the `failureLimit`,  `consecutiveErrorLimit` and `inconclusiveLimit` properties.
 
 #### Rollout
 
@@ -282,6 +282,16 @@ At this point, everything looks fine with our demo application and all metrics a
 
 
 
+Before starting testing our canary strategy, let's remind a few useful Argo Rollouts commands:
+
+```shell
+$ kubectl argo rollouts promote nr-rollouts-demo          # Manually promote a rollout to the next step
+$ kubectl argo rollouts abort nr-rollouts-demo            # Abort the rollout
+$ kubectl argo rollouts promote --full nr-rollouts-demo   # Skip all remaining steps and analysis 
+```
+
+
+
 #### Test 1: Healthy
 
 First of all, let's check if a healthy (`green`) version of the demo application is successfully deployed and promoted to stable using our canary strategy:
@@ -380,9 +390,9 @@ For the above anomaly, we can easily identify that our canary version generated 
 
 Argo Rollouts supports different types of analysis, a Kubernetes Job, for example, can be used to run analysis and [experiments](https://argoproj.github.io/argo-rollouts/features/experiment/). Those capabilities make it possible to also include in your canary pipeline other types of healthiness checks such as E2E tests, performance benchmarks, etc. It also [integrates](https://argoproj.github.io/argo-rollouts/FAQ/#how-does-argo-rollouts-integrate-with-argo-cd) with [Argo CD](https://argoproj.github.io/argo-cd/) making the operators lives easier.
 
-[Proactive Detection](https://docs.newrelic.com/docs/alerts-applied-intelligence/applied-intelligence/proactive-detection/proactive-detection-applied-intelligence/) is one feature of New Relic AIOps solution, if you want find, troubleshoot, and resolve problems more quickly, please check the [New Relic Applied Intelligence](https://docs.newrelic.com/docs/alerts-applied-intelligence/new-relic-alerts/get-started/introduction-applied-intelligence/) page out and discover how AIOps can be a valuable ally to keep your applications up and running.
+[Proactive Detection](https://docs.newrelic.com/docs/alerts-applied-intelligence/applied-intelligence/proactive-detection/proactive-detection-applied-intelligence/) is only one feature of the New Relic AIOps solution, if you want find, troubleshoot, and resolve problems more quickly, please check the [New Relic Applied Intelligence](https://docs.newrelic.com/docs/alerts-applied-intelligence/new-relic-alerts/get-started/introduction-applied-intelligence/) page out and discover how AIOps can be a valuable ally to keep your applications up and running.
 
-The canary analysis presented in this post is only a starting point, depending on your application characteristics, you can include [Logs](https://docs.newrelic.com/docs/logs/log-management/get-started/get-started-log-management/), [Metrics](https://docs.newrelic.com/docs/telemetry-data-platform/ingest-manage-data/ingest-apis/introduction-metric-api/), [Tracing](https://docs.newrelic.com/docs/distributed-tracing/concepts/introduction-distributed-tracing/), and your own set of [Alerts](https://docs.newrelic.com/docs/alerts-applied-intelligence/new-relic-alerts/get-started/introduction-alerts/)  in your canary analysis pipeline. 
+The canary analysis presented in this post is a starting point, depending on your application characteristics, you can also include [Logs](https://docs.newrelic.com/docs/logs/log-management/get-started/get-started-log-management/), [Metrics](https://docs.newrelic.com/docs/telemetry-data-platform/ingest-manage-data/ingest-apis/introduction-metric-api/), [Tracing](https://docs.newrelic.com/docs/distributed-tracing/concepts/introduction-distributed-tracing/), and your own set of [Alerts](https://docs.newrelic.com/docs/alerts-applied-intelligence/new-relic-alerts/get-started/introduction-alerts/) in the canary analysis. Having a good strategy that fits your application characteristics is a key success factor for your canary releases.  Once again, this [blog post](https://newrelic.com/blog/best-practices/canary-deploys-best-practices) can helps you with that.
 
 
 
