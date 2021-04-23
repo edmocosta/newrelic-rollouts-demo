@@ -235,7 +235,7 @@ rollout.yaml
 
 ### Running everything
 
-For this example, we will use a modified version of the [rollouts-demo](https://github.com/argoproj/rollouts-demo) application which sends metrics to New Relic using the [Go-Agent](https://github.com/newrelic/go-agent). Before checking the demo application out, let's verify if all resources were properly created:
+For this example, we will use a [modified](https://hub.docker.com/repository/docker/edmocosta/nr-rollouts-demo) version of the [rollouts-demo](https://github.com/argoproj/rollouts-demo) application which sends metrics to New Relic using the [Go-Agent](https://github.com/newrelic/go-agent). Before checking the demo application out, let's verify if all resources were properly created:
 
 ```shell
 $ kubectl get ro
