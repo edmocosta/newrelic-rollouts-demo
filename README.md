@@ -301,7 +301,7 @@ $ kubectl argo rollouts set image nr-rollouts-demo nr-rollouts-demo=edmocosta/nr
 ```
 
 <p align="center">
-	<a href="https://youtu.be/oCPyi63MCoY"><img src="images/green_video.png" alt="green video" style="zoom:45%;"/></a>
+	<a href="https://youtu.be/oCPyi63MCoY" target="_blank"><img src="images/green_video.png" alt="green video" style="zoom:45%;"/></a>
 </p>
 
 
@@ -315,7 +315,7 @@ $ kubectl argo rollouts set image nr-rollouts-demo nr-rollouts-demo=edmocosta/nr
 ```
 
 <p align="center">
-	<a href="https://youtu.be/9AX1KfpCb-o"><img src="images/bad_red_video.png" alt="bad-red video" style="zoom:45%;"/></a>
+	<a href="https://youtu.be/9AX1KfpCb-o" target="_blank"><img src="images/bad_red_video.png" alt="bad-red video" style="zoom:45%;"/></a>
 </p>
 
 
@@ -328,7 +328,7 @@ $ kubectl argo rollouts set image nr-rollouts-demo nr-rollouts-demo=edmocosta/nr
 ```
 
 <p align="center">
-	<a href="https://youtu.be/qYOJnNNwR3Q"><img src="images/slow_yellow_video.png" alt="slow-yellow video" style="zoom:45%;"/></a>
+	<a href="https://youtu.be/qYOJnNNwR3Q" target="_blank"><img src="images/slow_yellow_video.png" alt="slow-yellow video" style="zoom:45%;"/></a>
 </p>
 
 
@@ -341,7 +341,7 @@ $ kubectl argo rollouts set image nr-rollouts-demo nr-rollouts-demo=edmocosta/nr
 ```
 
 <p align="center">
-	<a href="https://youtu.be/1lebXRTT6Ys"><img src="images/purple_video.png" alt="purple video" style="zoom:45%;"/></a>
+	<a href="https://youtu.be/1lebXRTT6Ys" target="_blank"><img src="images/purple_video.png" alt="purple video" style="zoom:45%;"/></a>
 </p>
 
 
