@@ -300,11 +300,9 @@ First of all, let's check if a healthy (`green`) version of the demo application
 $ kubectl argo rollouts set image nr-rollouts-demo nr-rollouts-demo=edmocosta/nr-rollouts-demo:green 
 ```
 
-| 1. `green` is being canary released                          | 2. Part of the traffic is being sent to the `green` pods     |
-| ------------------------------------------------------------ | ------------------------------------------------------------ |
-| <img src="images/green_canary_status.png" alt="Image" style="zoom:50%;" /> | <img src="images/green_canary_initial_traffic.png" alt="Image" style="zoom:60%;" /> |
-| **3. As no errors were reported by the analysis, `green` is now promoted to stable** | **4. All the  traffic is now redirected to the new  stable version `green`** |
-| <img src="images/green_stable_status.png" alt="Image" style="zoom:50%;" /> | <img src="images/green_canary_fully_promoted_traffic.png" alt="Image" style="zoom:60%;" /> |
+<p align="center">
+	<a href="https://youtu.be/oCPyi63MCoY" target="_blank"><img src="images/green_video.png" alt="green video" style="zoom:45%;"/></a>
+</p>
 
 
 
@@ -316,62 +314,35 @@ The `bad-red` image adds `15%` of  `HTTP 500` errors to the API responses. This 
 $ kubectl argo rollouts set image nr-rollouts-demo nr-rollouts-demo=edmocosta/nr-rollouts-demo:bad-red 
 ```
 
-| 1. `bad-red` is being canary released                        | 2. Part of the traffic is being sent to the `bad-red` pods   |
-| ------------------------------------------------------------ | ------------------------------------------------------------ |
-| <img src="images/bad_red_canary_status.png" alt="Image" style="zoom:50%;" /> | <img src="images/bad_red_canary_traffic.png" alt="Image" style="zoom:60%;" /> |
-| **3. `bad-red` reported HTTP 500 errors to New Relic**        | **4. The `bad-red` rollout is aborted**                      |
-| <img src="images/bad_red_apm_http_errors.png" alt="Image" style="zoom:50%;" /> | <img src="images/bad_red_canary_rollout_aborted.png" alt="Image" style="zoom:50%;" /> |
-
-To better understand what just happened with the `bad-red` version, let's take a look at the failed `AnalysisRun` status by running the following command:
-
-```shell
-$ kubectl describe AnalysisRun <FAILED-ANALYSIS-NAME>
-```
-
-<img src="images/bad_red_analysis_status.png" alt="Image" style="zoom:50%;" />
-
-Checking this analysis status, we can conclude that `bad-red` failed due to the high percentage (`8.3333%`) of `HTTP 5XX` errors.
-
+<p align="center">
+	<a href="https://youtu.be/9AX1KfpCb-o" target="_blank"><img src="images/bad_red_video.png" alt="bad-red video" style="zoom:45%;"/></a>
+</p>
 
 
 #### Test 3:  Alerts
 
-Let's now deploy the `yellow` version and significantly increase the API response latency to affect our application [Apdex.](https://docs.newrelic.com/docs/apm/new-relic-apm/apdex/apdex-measure-user-satisfaction/) An [alert condition](https://docs.newrelic.com/docs/alerts-applied-intelligence/new-relic-alerts/get-started/introduction-alerts/) was previously configured in New Relic One to detect Apdex values lower than `0.9`.
+For this test, let's deploy the `slow-yellow` version,  this image delays all API responses by 2 seconds. It should affect our demo application  [Apdex](https://docs.newrelic.com/docs/apm/new-relic-apm/apdex/apdex-measure-user-satisfaction/) score. An [alert condition](https://docs.newrelic.com/docs/alerts-applied-intelligence/new-relic-alerts/get-started/introduction-alerts/) was previously configured in New Relic One to detect Apdex values lower than `0.9`. If an [alert](https://docs.newrelic.com/docs/alerts-applied-intelligence/new-relic-alerts/get-started/introduction-alerts/)  triggers during the release, the rollout should fail.
 
 ```shell
 $ kubectl argo rollouts set image nr-rollouts-demo nr-rollouts-demo=edmocosta/nr-rollouts-demo:yellow
 ```
 
-| 1. `yellow` is being canary released                         | 2. A latency of 5 seconds for 100% of the `yellow` responses was set on the demo app |
-| ------------------------------------------------------------ | ------------------------------------------------------------ |
-| <img src="images/yellow_canary_status.png" alt="Image" style="zoom:60%;" /> | <img src="images/yellow_canary_traffic.png" alt="Image" style="zoom:40%;" /> |
-| **3. New Relic Apdex incident was triggered**                 | **4. The `yellow` rollout is aborted**                       |
-| <img src="images/yellow_canary_apm_incident.png" alt="Image" style="zoom:60%;" /> | <img src="images/yellow_canary_rollout_aborted.png" alt="Image" style="zoom:40%;" /> |
-
-The `yellow` `AnalysisRun` status (`$ kubectl describe AnalysisRun <FAILED-ANALYSIS-NAME>`) also gives us some insights about the deployment failure, in this specific case, one incident triggered during the canary deployment:
-
-<img src="images/yellow_canary_analysis_status.png" alt="Image" style="zoom:30%;" />
-
+<p align="center">
+	<a href="https://youtu.be/qYOJnNNwR3Q" target="_blank"><img src="images/slow_yellow_video.png" alt="slow-yellow video" style="zoom:45%;"/></a>
+</p>
 
 
 #### Test 4: Proactive Detection
 
-Finally, let's test the [proactive detection](https://docs.newrelic.com/docs/alerts-applied-intelligence/applied-intelligence/proactive-detection/proactive-detection-applied-intelligence/) analysis, for this test, the `Rollout` resource was changed to intentionally disable all `HTTP 5xx` error analysis, that way, we can easily generate an anomaly by increasing the HTTP error rate to an abnormal level. The `purple` version is ready to go:
+This last experiment will test the [proactive detection](https://docs.newrelic.com/docs/alerts-applied-intelligence/applied-intelligence/proactive-detection/proactive-detection-applied-intelligence/) analysis, we will deploy the `purple` version and set our demo application error rate to 100%. This is definitely an abnormal error rate for our demo application and should trigger an anomaly incident in New Relic One.
 
 ```shell
 $ kubectl argo rollouts set image nr-rollouts-demo nr-rollouts-demo=edmocosta/nr-rollouts-demo:purple
 ```
 
-| 1. `purple` is being canary released                         | 2. The  `purple` 500 Error Rate was set to 100% on the demo app |
-| ------------------------------------------------------------ | ------------------------------------------------------------ |
-| <img src="images/purple_canary_status.png" alt="Image" style="zoom:60%;" /> | <img src="images/purple_canary_traffic.png" alt="Image" style="zoom:40%;" /> |
-| **3. New Relic Proactive Detection detected an anomaly in the application (error rate much higher than normal)** | **4. The `purple` rollout is aborted**                       |
-| <img src="images/purple_canary_apm_anomaly.png" alt="Image" style="zoom:60%;" /> | <img src="images/purple_canary_rollout_aborted.png" alt="Image" style="zoom:40%;" /> |
-
-Once again, the `AnalysisRun` status shows us the canary failure reason:
-
-<img src="images/purple_canary_analysis_status.png" alt="Image" style="zoom:45%;" />
-
+<p align="center">
+	<a href="https://youtu.be/1lebXRTT6Ys" target="_blank"><img src="images/purple_video.png" alt="purple video" style="zoom:45%;"/></a>
+</p>
 
 
 That's great! Isn't? New Relic [Proactive Detection](https://docs.newrelic.com/docs/alerts-applied-intelligence/applied-intelligence/proactive-detection/proactive-detection-applied-intelligence/) is automatically enabled and available at no additional cost and virtually zero configuration. All that's required is data from your APM-monitored applications flowing into New Relic.
